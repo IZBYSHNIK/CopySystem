@@ -1,16 +1,16 @@
 import os, requests, json
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 URL = 'https://cloud-api.yandex.net/v1/disk/resources'
 TOKEN = ''
-headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {TOKEN}'}
+
 CONFIG_DEFAULT = {
     'URL': URL,
     'TOKEN': TOKEN,
     'ORIGINAL_LOCATION': '',
     'NEW_LOCATION': '',
-    #'CONNECT_FOLDERS': [{'NAME': 'TEST1', 'ORIGINAL_LOCATION': 'home/user'}, {'NAME': 'TEST2', 'ORIGINAL_LOCATION': 'c://ddd/qww'}]
-    'CONNECT_FOLDERS': []
+    #'CONNECT_FOLDERS': {'TEST1': {'ORIGINAL_LOCATION': 'home/user'}, 'TEST2': {'ORIGINAL_LOCATION': 'c://ddd/qww'}}
+    'CONNECT_FOLDERS': {}
 }
 CONFIG = {}
 EXIT_SIGNALS = ('Q', 'EXIT')
@@ -33,11 +33,14 @@ def load_config():
         CONFIG = json.load(f)
         
 
+
+
 if not os.path.isfile(os.path.join(dirname, 'config.json')):
     save_config()
 else:
     load_config()
 
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {CONFIG["TOKEN"]}'}
 
 def create_folder(path):
     """Создание папки. \n path: Путь к создаваемой папке."""
@@ -55,6 +58,10 @@ def upload_file(loadfile, savefile, replace=False):
             requests.put(res['href'], files={'file':f})
         except KeyError:
             print(res)
+
+
+def download_file():
+    pass
 
 
 HOME_DIR = 'CopySystem'
@@ -101,7 +108,7 @@ def add_folder():
         break
     
     if get_request_for_changes(message=f'Будет добавлено новое хранилище для работы с названием {name_folder}, по пути {path_folder}'):
-        CONFIG['CONNECT_FOLDERS'].append({'NAME': name_folder, 'ORIGINAL_LOCATION': path_folder})
+        CONFIG['CONNECT_FOLDERS'] |= {name_folder: {'ORIGINAL_LOCATION': path_folder}}
         NAME_WORK_DIR = name_folder
         try:
             save_config()
@@ -117,18 +124,43 @@ def active_folder():
     show_available_folders()
     name_folder = input('Выберите название хранилища и введите его: ').strip()
     for folder in CONFIG['CONNECT_FOLDERS']:
-        if folder['NAME'] == name_folder:
-            NAME_WORK_DIR = folder['NAME']
+        if folder == name_folder:
+            NAME_WORK_DIR = folder
             break
     else:
         print('Указаного хранилища нет')
                
 
 def show_available_folders(get_total=False, marker=' - '):
-    list_folder = [marker+i['NAME']+'\n' for i in CONFIG['CONNECT_FOLDERS']]
+    list_folder = [marker+i+'\n' for i in CONFIG['CONNECT_FOLDERS']]
     print(*list_folder, sep='')
     if get_total:
         print(f'Всего хранилищ - {len(list_folder)}')
+
+
+def save():
+    if NAME_WORK_DIR:
+        # print(NAME_WORK_DIR)
+        # print(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'])
+        dirs = list(os.walk(top=CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION']))
+        root_dir = os.path.join(HOME_DIR, NAME_WORK_DIR)
+        # create_folder(os.path.join(HOME_DIR, NAME_WORK_DIR))
+        for d in range(len(dirs)):
+            path_ = dirs[d][0].replace(dirs[0][0], '')
+            if not path_:
+                path_ = os.sep
+            
+            # print(root_dir + path_)
+            if path_:
+                # print(os.path.join(HOME_DIR, path_))
+                create_folder(root_dir + path_)
+                for f in dirs[d][2]:
+                    print(f'COPY: {f} | {os.path.join(dirs[d][0], f)} -> {os.path.join(root_dir + path_, f)}')
+                    upload_file(os.path.join(dirs[d][0], f), os.path.join(root_dir + path_, f))
+                  
+        
+    else:
+        print('Для выполнения этой команды выберите активное хранилище: CHOOSE_FOLDER')
     
 
 COMMANDS = {
@@ -136,10 +168,11 @@ COMMANDS = {
     "SHOW_FOLDERS": {'NAME': 'Показать доступные хранилища данных', 'COMMAND': lambda : show_available_folders(get_total=True)},
     "CHOOSE_FOLDER": {'NAME': 'Выбрать рабочее хранилище', 'COMMAND': active_folder},
 
-    # "1": {'NAME': 'Выбрать рабочее хранилище', 'COMMAND': active_folder},
-    # "2": {'NAME': 'Выбрать рабочее хранилище', 'COMMAND': active_folder},
+    "SAVE": {'NAME': 'Сохранить в облако', 'COMMAND': save},
+    "DOWNLOAD": {'NAME': 'Загрузить из облака', 'COMMAND': lambda: 0},
 
 }
+
 
 SYS_COMMANDS = {
     "SHOW": lambda : ['Сприсок доступных команд\n'] + [f'{i}, {c} - {COMMANDS[c]["NAME"]}\n' for i, c in zip(range(len(COMMANDS)), COMMANDS.keys()) ]
@@ -149,6 +182,17 @@ prefix = f'{f"$({_dir}) " if _dir else ""}> '
 
 def init():
     print(f'Добро пожаловать в CopySystem {VERSION}!')
+        
+    if not CONFIG['TOKEN']:
+        print('Для работы программы нужно ввести токен на доступ к вашему сетевому хранилищу')
+        while True:
+            CONFIG['TOKEN'] = input(' > ').strip()
+            headers['Authorization'] = f'OAuth {CONFIG["TOKEN"]}'
+            create_folder(HOME_DIR)
+            save_config()
+            break
+       
+
     print('---Для вывода доступных команд введите show---')
     while True:
         _dir = NAME_WORK_DIR
@@ -164,7 +208,10 @@ def init():
                 print(*SYS_COMMANDS[command](), sep='')
             elif command in COMMANDS or command.isnumeric():
                 if command.isnumeric():
-                    COMMANDS[list(COMMANDS.keys())[int(command)]]['COMMAND']()
+                    if 0 <= int(command) < len(list(COMMANDS.keys())):
+                        COMMANDS[list(COMMANDS.keys())[int(command)]]['COMMAND']()
+                    else:
+                        print('Команда не найдена')
                 else:
                     COMMANDS[command]['COMMAND']()
                 
