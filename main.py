@@ -1,6 +1,6 @@
 import os, requests, json
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 URL = 'https://cloud-api.yandex.net/v1/disk/resources'
 TOKEN = ''
 
@@ -60,8 +60,17 @@ def upload_file(loadfile, savefile, replace=False):
             print(res)
 
 
-def download_file():
-    pass
+def download_file(loadfile, savefile):
+    """Скачивание файла.
+    savefile: Путь к файлу на Диске
+    loadfile: Путь к загружаемому файлу
+    """
+    res = requests.get(f'{URL}/download?path={savefile}', headers=headers).json()
+    with open(loadfile, 'wb') as f:
+        try:
+            requests.put(res['href'], files={'file':f})
+        except KeyError:
+            print(res)
 
 
 HOME_DIR = 'CopySystem'
@@ -157,10 +166,35 @@ def save():
                 for f in dirs[d][2]:
                     print(f'COPY: {f} | {os.path.join(dirs[d][0], f)} -> {os.path.join(root_dir + path_, f)}')
                     upload_file(os.path.join(dirs[d][0], f), os.path.join(root_dir + path_, f))
-                  
-        
     else:
-        print('Для выполнения этой команды выберите активное хранилище: CHOOSE_FOLDER')
+        print('Для выполнения этой команды выберите активное хранилище с помощью команды: 2 или CHOOSE_FOLDER')
+
+def scan_folder(root_dir, result=None):
+    if not result:
+        result = {}
+    res = requests.get(f'{URL}?path={root_dir}', headers=headers).json()
+    f = []
+    for i in res['_embedded']['items']:
+        if i['type'] == 'dir':
+            print('DIR', i['name'])
+            result = scan_folder(os.path.join(root_dir, i['name']), result=result)
+        if i['type'] == 'file':
+            f.append((i['name'], i['file']))
+            print('FILE', i['name'])
+    result[root_dir] = f
+    return result
+
+def load():
+    if NAME_WORK_DIR:
+        root_dir = os.path.join(HOME_DIR, NAME_WORK_DIR)
+        print(scan_folder(root_dir))
+        # with open(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'] + os.sep +'qqq.zip', 'wb') as f:
+        #     try:
+        #         requests.put(res['href'], files={'file':f})
+        #     except KeyError:
+        #         print(res)
+    else:
+        print('Для выполнения этой команды выберите активное хранилище с помощью команды: 2 или CHOOSE_FOLDER')
     
 
 COMMANDS = {
@@ -169,7 +203,7 @@ COMMANDS = {
     "CHOOSE_FOLDER": {'NAME': 'Выбрать рабочее хранилище', 'COMMAND': active_folder},
 
     "SAVE": {'NAME': 'Сохранить в облако', 'COMMAND': save},
-    "DOWNLOAD": {'NAME': 'Загрузить из облака', 'COMMAND': lambda: 0},
+    "DOWNLOAD": {'NAME': 'Загрузить из облака', 'COMMAND': load},
 
 }
 
