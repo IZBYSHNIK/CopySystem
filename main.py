@@ -60,7 +60,7 @@ def upload_file(loadfile, savefile, replace=False):
             print(res)
 
 
-def download_file(loadfile, savefile):
+def download_file(savefile, loadfile):
     """Скачивание файла.
     savefile: Путь к файлу на Диске
     loadfile: Путь к загружаемому файлу
@@ -159,13 +159,13 @@ def save():
             if not path_:
                 path_ = os.sep
             
-            # print(root_dir + path_)
+            print(root_dir + path_)
             if path_:
                 # print(os.path.join(HOME_DIR, path_))
                 create_folder(root_dir + path_)
                 for f in dirs[d][2]:
                     print(f'COPY: {f} | {os.path.join(dirs[d][0], f)} -> {os.path.join(root_dir + path_, f)}')
-                    upload_file(os.path.join(dirs[d][0], f), os.path.join(root_dir + path_, f))
+                    upload_file(os.path.join(dirs[d][0], f), os.path.join(root_dir + path_, f), replace=True)
     else:
         print('Для выполнения этой команды выберите активное хранилище с помощью команды: 2 или CHOOSE_FOLDER')
 
@@ -187,12 +187,27 @@ def scan_folder(root_dir, result=None):
 def load():
     if NAME_WORK_DIR:
         root_dir = os.path.join(HOME_DIR, NAME_WORK_DIR)
-        print(scan_folder(root_dir))
-        # with open(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'] + os.sep +'qqq.zip', 'wb') as f:
-        #     try:
-        #         requests.put(res['href'], files={'file':f})
-        #     except KeyError:
-        #         print(res)
+        print('Сканирование хранилища ...')
+        dirs = scan_folder(root_dir)
+        print('Сканирование завершено')
+        print(f'Обноружено {str(len(dirs))} папок и {sum([len(dirs[i]) for i in dirs])} файов')
+        if get_request_for_changes():
+            print(f"Файлы и папки будут сохранены по пути {CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION']}")
+            print('Создание папок ...')
+            for i in sorted(dirs, key=lambda x: len(x.split(os.sep))):
+                if not os.path.isdir(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'] + i.replace(root_dir, '')) and i.replace(root_dir, ''):
+                    print(f"CREATE FOLDER {i.replace(root_dir, '')}")
+                    os.mkdir(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'] + i.replace(root_dir, ''))
+            
+            print('Скачивание файлов ...')
+            for i in dirs:
+                for file in dirs[i]:
+                    print("DOWNLOAD", file[0])
+                    with open(CONFIG['CONNECT_FOLDERS'][NAME_WORK_DIR]['ORIGINAL_LOCATION'] + os.sep + i.replace(root_dir, '') + os.sep + file[0], 'wb') as f: 
+                        requests.get(file[1])       
+        else:
+            return
+        print('Скачивание успешно завершено')
     else:
         print('Для выполнения этой команды выберите активное хранилище с помощью команды: 2 или CHOOSE_FOLDER')
     
