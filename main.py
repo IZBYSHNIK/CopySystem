@@ -1,6 +1,6 @@
 import os, requests, json
 
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 URL = 'https://cloud-api.yandex.net/v1/disk/resources'
 TOKEN = ''
 
@@ -101,7 +101,7 @@ def add_folder():
     global NAME_WORK_DIR
     while True:
         name_folder = input('Придумайте имя для хранилища в облаке: ').strip() 
-        if name_folder.upper()in EXIT_SIGNALS:
+        if name_folder.upper() in EXIT_SIGNALS:
             return
         if not name_folder.isidentifier():
             print(f'*Указано недопустимое название: {name_folder}')
@@ -270,3 +270,5 @@ def init():
 
 if __name__ == '__main__':
     init()
+
+input()
