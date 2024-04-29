@@ -1,4 +1,4 @@
-import os, requests, json
+import os, requests, json, sys
 
 VERSION = '0.0.4'
 URL = 'https://cloud-api.yandex.net/v1/disk/resources'
@@ -235,7 +235,10 @@ def init():
     if not CONFIG['TOKEN']:
         print('Для работы программы нужно ввести токен на доступ к вашему сетевому хранилищу')
         while True:
-            CONFIG['TOKEN'] = input(' > ').strip()
+            value = input(' > ').strip()
+            if value.upper() in EXIT_SIGNALS:
+                sys.exit()
+            CONFIG['TOKEN'] = value
             headers['Authorization'] = f'OAuth {CONFIG["TOKEN"]}'
             create_folder(HOME_DIR)
             save_config()
