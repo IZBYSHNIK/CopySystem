@@ -1,3 +1,14 @@
+# Copyright (C) 2024 IvanDegtyarev
+
+# This is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published
+#  by the Free Software Foundation; either version 3 of the license, or (at your choice) any later version.
+
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; even without an implicit warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For more information, see the GNU General Public License.
+
+
+# You should have received a copy of the GNU General Public License along with this program. If this is not the case, see <https://www.gnu.org/licenses />.
+
 import os, requests, json, sys
 
 VERSION = '0.0.4'
@@ -40,7 +51,7 @@ if not os.path.isfile(os.path.join(dirname, 'config.json')):
 else:
     load_config()
 
-headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {CONFIG["TOKEN"]}'}
+headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {str("__________________")}'}
 
 def create_folder(path):
     """Создание папки. \n path: Путь к создаваемой папке."""
@@ -161,7 +172,7 @@ def save():
             
             print(root_dir + path_)
             if path_:
-                # print(os.path.join(HOME_DIR, path_))
+                # print(os.path.join(HOME_DIR, path_))40
                 create_folder(root_dir + path_)
                 for f in dirs[d][2]:
                     print(f'COPY: {f} | {os.path.join(dirs[d][0], f)} -> {os.path.join(root_dir + path_, f)}')
@@ -232,17 +243,17 @@ prefix = f'{f"$({_dir}) " if _dir else ""}> '
 def init():
     print(f'Добро пожаловать в CopySystem {VERSION}!')
         
-    if not CONFIG['TOKEN']:
-        print('Для работы программы нужно ввести токен на доступ к вашему сетевому хранилищу')
-        while True:
-            value = input(' > ').strip()
-            if value.upper() in EXIT_SIGNALS:
-                sys.exit()
-            CONFIG['TOKEN'] = value
-            headers['Authorization'] = f'OAuth {CONFIG["TOKEN"]}'
-            create_folder(HOME_DIR)
-            save_config()
-            break
+    # if not CONFIG['TOKEN']:
+    #     print('Для работы программы нужно ввести токен на доступ к вашему сетевому хранилищу')
+    #     while True:
+    #         value = input(' > ').strip()
+    #         if value.upper() in EXIT_SIGNALS:
+    #             sys.exit()
+    #         CONFIG['TOKEN'] = value
+    #         headers['Authorization'] = f'OAuth {CONFIG["TOKEN"]}'
+    #         create_folder(HOME_DIR)
+    #         save_config()
+    #         break
        
 
     print('---Для вывода доступных команд введите show---')
