@@ -78,8 +78,12 @@ class CopyManager:
 
     def create_folder_network(self, path):
         """Создание папки. \n path: Путь к создаваемой папке."""
-        path = path.replace(os.sep, r'%2F')
+        # path = path.replace(os.sep, r'%2F')
         print(requests.put(f"{self.NETWORK_URLs[0]}?path={path}", headers=self.generate_head()))
+
+    
+    def show_stream_upload_files(self, *args, **kwargs):
+        pass
 
 
     def upload_file_network(self, loadfile, savefile, replace=False):
@@ -87,7 +91,8 @@ class CopyManager:
         savefile: Путь к файлу на Диске
         loadfile: Путь к загружаемому файлу
         replace: true or false Замена файла на Диске"""
-     
+        # loadfile = loadfile.replace(os.sep, r'%2F')
+        self.show_stream_upload_files(loadfile, savefile, replace=False)
         res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}/upload?path={savefile}&overwrite={replace}", headers=self.generate_head()).json()
         with open(loadfile, 'rb') as f:
             try:
@@ -109,48 +114,55 @@ class CopyManager:
                 print(res)
 
     def scan_folder_network(self, root_dir, result=None):
+        root_dir = root_dir.replace(os.sep, r'%2F')
         if not result:
             result = {}
         res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}?path={root_dir}", headers=self.generate_head()).json()
         f = []
+        print(res)
         for i in res['_embedded']['items']:
             if i['type'] == 'dir':
-                result = self.scan_folder(os.path.join(root_dir, i['name']), result=result)
+                result = self.scan_folder_network(os.path.join(root_dir, i['name']), result=result)
             if i['type'] == 'file':
                 f.append((i['name'], i['file']))
         result[root_dir] = f
         return result
 
-    def download_files_network(self):
+    def download_files_network(self, new_path=None):
         root_dir = os.path.join(self.HOME_DIR, self.WORK_DIR)
      
         dirs = self.scan_folder_network(root_dir)
+        if new_path:
+            path = new_path
+        else:
+            path = self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION']
         
         for i in sorted(dirs, key=lambda x: len(x.split(os.sep))):
-            if not os.path.isdir(self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION'] + i.replace(root_dir, '')) and i.replace(root_dir, ''):
+            if not os.path.isdir(path + i.replace(root_dir, '')) and i.replace(root_dir, ''):
                 print(f"CREATE FOLDER {i.replace(root_dir, '')}")
-                os.mkdir(self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION'] + i.replace(root_dir, ''))
-        
+                os.mkdir(path + i.replace(root_dir, ''))
+# hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        
         for i in dirs:
             for file in dirs[i]:
-                print("DOWNLOAD", file[0])
-                with open(self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION'] + os.sep + i.replace(root_dir, '') + os.sep + file[0], 'wb') as f: 
+                print("DOWNLOAD", file[0]) # Здесь надо разобраться  os.sep
+                with open(path + os.sep + i.replace(root_dir, '') + os.sep + file[0], 'wb') as f: 
                     requests.get(file[1])      
 
     def send_folder_network(self):
         dirs = list(os.walk(top=self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION']))
         root_dir = os.path.join(self.HOME_DIR, self.WORK_DIR)
+        self.create_folder_network(os.path.join(self.HOME_DIR))
         self.create_folder_network(os.path.join(self.HOME_DIR, self.WORK_DIR).replace(os.sep, r'%2F'))
+
         for d in range(len(dirs)):
-            path_ = dirs[d][0].replace(dirs[0][0], '')
-            if not path_:
-                path_ = os.sep
-            if path_:
+            old_path = dirs[d][0]
+            new_path = os.path.join(root_dir + old_path.replace(dirs[0][0], ''))
+            old_path = old_path.replace('/', os.sep)
+            self.create_folder_network(new_path.replace(os.sep, r'%2F'))
+            for f in dirs[d][2]:
+                self.upload_file_network(os.path.join(old_path, f), os.path.join(new_path, f).replace(os.sep, r'%2F'), replace=True) 
                 
-                self.create_folder_network(os.path.join(root_dir, path_).replace(os.sep, r'%2F'))
-                for f in dirs[d][2]:
-                    # print(f'COPY: {f} | {os.path.join(dirs[d][0], f)} -> {os.path.join(root_dir + path_, f)}')
-                    self.upload_file_network(os.path.join(dirs[d][0], f), os.path.join(root_dir + path_, f).replace(os.sep, r'%2F'), replace=True) 
+                    
    
        
         

@@ -12,10 +12,12 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from core import CopyManager
 from PySide6.QtCore import QRunnable, Slot, Signal, QThreadPool
+from PySide6 import QtSvgWidgets
+
 import sys, os
 import traceback
 
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 cm = CopyManager()
 
 def clearLayout(layout):
@@ -51,6 +53,56 @@ class WorkerSignals(QtCore.QObject):
     progress = Signal(object)
 
 
+    def setupUi(self):
+        self.setObjectName("self")
+        self.resize(186, 187)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.logo_lable = QtWidgets.QLabel(parent=self)
+        self.logo_lable.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.logo_lable.setObjectName("logo_lable")
+        self.verticalLayout_2.addWidget(self.logo_lable)
+        self.line = QtWidgets.QFrame(parent=self)
+        self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line.setObjectName("line")
+        self.verticalLayout_2.addWidget(self.line)
+        self.textBrowser = QtWidgets.QTextBrowser(parent=self)
+        self.textBrowser.setObjectName("textBrowser")
+        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.line_2 = QtWidgets.QFrame(parent=self)
+        self.line_2.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line_2.setObjectName("line_2")
+        self.verticalLayout_2.addWidget(self.line_2)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(-1, -1, -1, 25)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.logo_GPL = QtWidgets.QLabel(parent=self)
+        self.logo_GPL.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.logo_GPL.setObjectName("logo_GPL")
+        self.horizontalLayout.addWidget(self.logo_GPL)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.License_label = QtWidgets.QLabel(parent=self)
+        self.License_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.License_label.setObjectName("License_label")
+        self.verticalLayout_2.addWidget(self.License_label)
+        self.Copyright_lable = QtWidgets.QLabel(parent=self)
+        self.Copyright_lable.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.Copyright_lable.setObjectName("Copyright_lable")
+        self.verticalLayout_2.addWidget(self.Copyright_lable)
+
+        self.retranslateUi()
+     
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr("self"))
+        self.logo_lable.setText(self.tr("ЛОГО"))
+        self.logo_GPL.setText(self.tr("ЛОГО"))
+        self.License_label.setText(self.tr("TextLabel"))
+        self.Copyright_lable.setText(self.tr("Copyright (C) 2024 IvanDegtyarev"))
+
+
 class Worker(QRunnable):
     def __init__(self, fn, *args, **kwargs):
         super(Worker, self).__init__()
@@ -82,6 +134,30 @@ class Worker(QRunnable):
             self.signals.finished.emit()
 
 
+class Push(QtWidgets.QPushButton):
+    def __init__(self, parent, base_weight, base_height, growth, tool_tip=None, text=None, icon_path=None):
+        super().__init__()
+        if icon_path:
+            self.setStyleSheet('border: none;')
+        self.base_height = base_height
+        self.base_weight = base_weight
+        self.growth = growth
+        self.setIconSize(QtCore.QSize(self.base_weight, self.base_height))
+        if tool_tip:
+            self.setToolTip(tool_tip)
+        if icon_path:
+            self.setIcon(QtGui.QIcon(icon_path))
+        if not icon_path and text:
+            self.setText(text)
+
+    def enterEvent(self, e):
+        self.setIconSize(QtCore.QSize(self.base_weight + self.growth, self.base_height + self.growth))
+
+    def leaveEvent(self, e):
+        self.setIconSize(QtCore.QSize(self.base_weight, self.base_height))
+
+
+
 class Base(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -89,10 +165,149 @@ class Base(QtWidgets.QWidget):
         self.resize(336, 293)
 
 
-class Parametrs(Base):
+class About_UI(Base):
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("self")
+        self.resize(186, 187)
+        
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.logo_layout = QtWidgets.QHBoxLayout(self)
+        self.logo_lable = QtSvgWidgets.QSvgWidget(os.path.join('assets', 'media','CS.svg'), parent=self)
+        self.logo_lable.setFixedSize(QtCore.QSize(100, 100))
+        self.logo_lable.setObjectName("logo_lable")
+        self.logo_layout.addWidget(self.logo_lable)
+        self.verticalLayout_2.addLayout(self.logo_layout)
+        self.textBrowser = QtWidgets.QTextBrowser(parent=self)
+        self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0%)')
+        self.textBrowser.setObjectName("textBrowser")
+        self.textBrowser.setMinimumWidth(450)
+        self.textBrowser.setMinimumHeight(300)
+        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(-1, -1, -1, 25)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.logo_GPL = QtSvgWidgets.QSvgWidget(os.path.join('assets', 'media','GPL.svg'), parent=self)
+        self.logo_GPL.setObjectName("logo_GPL")
+        self.logo_GPL.setFixedSize(QtCore.QSize(150, 100))
+        self.horizontalLayout.addWidget(self.logo_GPL)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.Copyright_lable = QtWidgets.QLabel(parent=self)
+        self.Copyright_lable.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.Copyright_lable.setObjectName("Copyright_lable")
+        self.verticalLayout_2.addWidget(self.Copyright_lable)
+        self.logo_lable.mousePressEvent = self.show_gratitude
+        self.logo_GPL.mousePressEvent = self.show_license
+
+        self.retranslateUi()
+     
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr("О программе"))
+        # self.logo_GPL.setText(self.tr("ЛОГО"))
+        self.Copyright_lable.setText(self.tr("Copyright (C) 2024 IvanDegtyarev"))
+        self.textBrowser.setText(
+            """
+                <h1>О программе</h1>
+                <p><b>CopySystem</b> - это прогармма, которая позваляет подклчится к Yandex-диску по токену и резервиврвать определеные папки (хранилища).</p>
+            """
+        )
+
+    def show_license(self, e):
+        self.l = QtWidgets.QTextBrowser()
+        self.l.setWindowIcon(QtGui.QIcon('CS.ico'))
+        self.l.setWindowTitle(self.tr('Лицензия'))
+        
+        try:
+            with open('COPYING', 'r', encoding='UTF-8') as f:
+                temp = ''
+                for i in f:
+                    temp += i
+        except BaseException as f:
+            print(f)
+        else:
+            self.l.setText(temp)
+            self.l.show()
+        del temp
+
+    def show_gratitude(self, e):
+        self.g = QtWidgets.QTextBrowser()
+        self.g.setWindowIcon(QtGui.QIcon('CS.ico'))
+        self.g.setMinimumWidth(800)
+        self.g.setWindowTitle(self.tr('Благодарность'))
+        self.g.setText(
+            """
+                <p>
+                 <pre style='white-space: pre;' align='center'>                                                                                                                                      
+                                                                                                                                              
+TTTTTTTTTTTTTTTTTTTTTTTHHHHHHHHH     HHHHHHHHH               AAA               NNNNNNNN        NNNNNNNNKKKKKKKKK    KKKKKKK   SSSSSSSSSSSSSSS 
+T:::::::::::::::::::::TH:::::::H     H:::::::H              A:::A              N:::::::N       N::::::NK:::::::K    K:::::K SS:::::::::::::::S
+T:::::::::::::::::::::TH:::::::H     H:::::::H             A:::::A             N::::::::N      N::::::NK:::::::K    K:::::KS:::::SSSSSS::::::S
+T:::::TT:::::::TT:::::THH::::::H     H::::::HH            A:::::::A            N:::::::::N     N::::::NK:::::::K   K::::::KS:::::S     SSSSSSS
+TTTTTT  T:::::T  TTTTTT  H:::::H     H:::::H             A:::::::::A           N::::::::::N    N::::::NKK::::::K  K:::::KKKS:::::S            
+        T:::::T          H:::::H     H:::::H            A:::::A:::::A          N:::::::::::N   N::::::N  K:::::K K:::::K   S:::::S            
+        T:::::T          H::::::HHHHH::::::H           A:::::A A:::::A         N:::::::N::::N  N::::::N  K::::::K:::::K     S::::SSSS         
+        T:::::T          H:::::::::::::::::H          A:::::A   A:::::A        N::::::N N::::N N::::::N  K:::::::::::K       SS::::::SSSSS    
+        T:::::T          H:::::::::::::::::H         A:::::A     A:::::A       N::::::N  N::::N:::::::N  K:::::::::::K         SSS::::::::SS  
+        T:::::T          H::::::HHHHH::::::H        A:::::AAAAAAAAA:::::A      N::::::N   N:::::::::::N  K::::::K:::::K           SSSSSS::::S 
+        T:::::T          H:::::H     H:::::H       A:::::::::::::::::::::A     N::::::N    N::::::::::N  K:::::K K:::::K               S:::::S
+        T:::::T          H:::::H     H:::::H      A:::::AAAAAAAAAAAAA:::::A    N::::::N     N:::::::::NKK::::::K  K:::::KKK            S:::::S
+      TT:::::::TT      HH::::::H     H::::::HH   A:::::A             A:::::A   N::::::N      N::::::::NK:::::::K   K::::::KSSSSSSS     S:::::S
+      T:::::::::T      H:::::::H     H:::::::H  A:::::A               A:::::A  N::::::N       N:::::::NK:::::::K    K:::::KS::::::SSSSSS:::::S
+      T:::::::::T      H:::::::H     H:::::::H A:::::A                 A:::::A N::::::N        N::::::NK:::::::K    K:::::KS:::::::::::::::SS 
+      TTTTTTTTTTT      HHHHHHHHH     HHHHHHHHHAAAAAAA                   AAAAAAANNNNNNNN         NNNNNNNKKKKKKKKK    KKKKKKK SSSSSSSSSSSSSSS   
+                                                                                                                                              
+                                                                                                                                              
+                 <pre>                                                        
+                </p>
+                <h1 align='center' style="color: #1f1f1f">Дорогие друзья!</h1>
+<p align='center' style="font-size: 20px; color: #1f1f1f"> Выржаю огромную благодарность за неоценимую помощь в разработке данной программы. Ваши знания, опыт и энтузиазм сделали эту программу.
+Именно ваша поддержка позволила преодолеть все трудности и достичь поставленной цели. Выражаю благодарность за ваше доверие и веру.</p>
+<p align='center' style="font-size: 20px;">Спасибо вам огромное!</p>
+                <p align='center' style="font-size: 16px; color: #1f1f1f; text-transform: uppercase; font-style: italic;">
+                <hr>
+                <h3>Отдельная благодарность:</h3>
+                <ui>
+                <li>Вдохновителю и тестирвощику - <b>Васильеву Владу Александровичу</b></li>
+                <li></li>
+                <li></li>
+                </ui>
+                </p>
+
+<pre style='white-space: pre;' align='center'>                                                                                                                                      
+                                                                                                                                              
+         LoveLoveLov                eLoveLoveLo          
+     veLoveLoveLoveLove          LoveLoveLoveLoveLo      
+  veLoveLoveLoveLoveLoveL      oveLoveLoveLoveLoveLove   
+ LoveLoveLoveLoveLoveLoveL    oveLoveLoveLoveLoveLoveLo  
+veLoveLoveLoveLoveLoveLoveL  oveLoveLoveLoveLoveLoveLove 
+LoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLove 
+LoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLove 
+ LoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLo  
+ veLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLove  
+   LoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLo    
+     veLoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLove      
+       LoveLoveLoveLoveLoveLoveLoveLoveLoveLoveLo        
+         veLoveLoveLoveLoveLoveLoveLoveLoveLove          
+           LoveLoveLoveLoveLoveLoveLoveLoveLo            
+             veLoveLoveLoveLoveLoveLoveLove              
+               LoveLoveLoveLoveLoveLoveLo                
+                  veLoveLoveLoveLoveLo                   
+                      veLoveLoveLo                       
+                           ve                            
+                 <pre> 
+            """
+        )
+        self.g.show()
+      
+
+class Parametrs(QtWidgets.QDialog):
     def __init__(self, parent, is_new=False):
         super().__init__()
         self.is_new = is_new
+        self.setModal(True)
+        self.setWindowIcon(QtGui.QIcon('CS.ico'))
         self.parent = parent
         self.resize(366, 298)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
@@ -105,9 +320,17 @@ class Parametrs(Base):
         self.horizontalLayout.addWidget(self.icon_lable)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
+
+        self.logo_layout = QtWidgets.QHBoxLayout(self)
+        self.logo_lable = QtSvgWidgets.QSvgWidget(os.path.join('assets', 'media','CS.svg'), parent=self)
+        self.logo_lable.setFixedSize(QtCore.QSize(100, 100))
+        self.logo_lable.setObjectName("logo_lable")
+        self.logo_layout.addWidget(self.logo_lable)
+        self.horizontalLayout.addLayout(self.logo_layout)
+
         self.verticalLayout_2.addLayout(self.horizontalLayout)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem1)
+        # spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        # self.verticalLayout_2.addItem(spacerItem1)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
@@ -162,6 +385,9 @@ class Parametrs(Base):
         
         self.save_pushButton.clicked.connect(self.save_folder)
         self.location_pushButton.clicked.connect(self.set_location_path)
+
+        self.current_path = ''
+
         self.retranslateUi()
 
         if not is_new:
@@ -206,7 +432,7 @@ class Parametrs(Base):
                 if not os.path.isdir(self.location_pushButton.text()):
                     raise ValueError()
 
-                cm.fix_folder(self.lineEdit.text(), self.location_pushButton.text(), self.comboBox.currentText(), 0, {
+                cm.fix_folder(self.lineEdit.text(), self.current_path, self.comboBox.currentText(), 0, {
                     'URL': self.URLs.currentText(),
                     'TOKEN': self.token.toPlainText(),
                 })
@@ -220,15 +446,19 @@ class Parametrs(Base):
 
     def set_location_path(self):
         path = QtWidgets.QFileDialog.getExistingDirectory(self)
-        self.location_pushButton.setText(path)
+        if path:
+            self.current_path = path
+            self.location_pushButton.setText(path[:50] + ('...' if len(path) >= 50 else ''))
+            self.location_pushButton.setToolTip(path)
         
 
-class Main(Base):
-    def __init__(self):
+class Paths_UI(QtWidgets.QDialog):
+    def __init__(self,):
         super().__init__()
-        self.setObjectName("Main")
-        self.resize(336, 293)
+     
         self.setWindowIcon(QtGui.QIcon('CS.ico'))
+        self.resize(366, 298)
+        self.setModal(True)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -239,15 +469,142 @@ class Main(Base):
         self.horizontalLayout.addWidget(self.icon_lable)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.about_pushButton = QtWidgets.QPushButton(parent=self)
+
+        self.logo_layout = QtWidgets.QHBoxLayout(self)
+        self.logo_lable = QtSvgWidgets.QSvgWidget(os.path.join('assets', 'media','CS.svg'), parent=self)
+        self.logo_lable.setFixedSize(QtCore.QSize(100, 100))
+        self.logo_lable.setObjectName("logo_lable")
+        self.logo_layout.addWidget(self.logo_lable)
+        self.horizontalLayout.addLayout(self.logo_layout)
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+     
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout.setObjectName("gridLayout")
+        self.lineEdit = QtWidgets.QTextBrowser(parent=self,)
+        self.lineEdit.setObjectName("lineEdit")
+        self.lineEdit.setReadOnly(1)
+        
+        self.gridLayout.addWidget(self.lineEdit, 1, 1, 1, 1)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.gridLayout.addItem(spacerItem2, 2, 1, 1, 1)
+        self.original_location_lable = QtWidgets.QLabel(parent=self)
+        self.original_location_lable.setObjectName("original_location_lable")
+        self.gridLayout.addWidget(self.original_location_lable, 1, 0, 1, 1)
+      
+        self.parametrs_gridLayout = QtWidgets.QGridLayout()
+        self.parametrs_gridLayout.setContentsMargins(-1, -1, -1, 0)
+        self.parametrs_gridLayout.setObjectName("gridLayout_3")
+        self.gridLayout.addLayout(self.parametrs_gridLayout, 6, 0, 1, 2)
+        self.is_downloading_old_place = QtWidgets.QCheckBox()
+        self.gridLayout.addWidget(self.is_downloading_old_place, 2, 1, 1, 1)
+
+
+        self.location_pushButton = QtWidgets.QPushButton(parent=self)
+        self.location_pushButton.setObjectName("location_pushButton")
+        self.gridLayout.addWidget(self.location_pushButton, 3, 1, 1, 1)
+        
+        
+        self.location_label = QtWidgets.QLabel(parent=self)
+        self.location_label.setObjectName("location_label")
+        self.gridLayout.addWidget(self.location_label, 3, 0, 1, 1)
+
+
+        self.verticalLayout_4.addLayout(self.gridLayout)
+        self.verticalLayout.addLayout(self.verticalLayout_4)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.verticalLayout.addItem(spacerItem3)
+        self.save_pushButton = QtWidgets.QPushButton(parent=self)
+        self.save_pushButton.setObjectName("save_pushButton")
+        self.verticalLayout.addWidget(self.save_pushButton)
+        self.error_message = QtWidgets.QLabel(parent=self)
+        self.error_message.setObjectName("error_message")
+        self.verticalLayout.addWidget(self.error_message)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+
+        self.new_download_path = ''
+
+
+        self.save_pushButton.clicked.connect(self.save_files)
+        self.location_pushButton.clicked.connect(self.set_location_path)
+        self.is_downloading_old_place.stateChanged.connect(self.change_checkbox_downloading_old_place)
+
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr("Пути сохранения"))
+        self.icon_lable.setText(self.tr(f"<html><head/><body><p><span style=\" font-size:18pt; font-weight:600;\">CopySystem<sup>{str(VERSION)}</sup> </span></p></body></html>"))
+        self.lineEdit.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['ORIGINAL_LOCATION'])
+        self.is_downloading_old_place.setText(self.tr('Сохранить в туже папку'))
+        self.original_location_lable.setText(self.tr("Исходный путь"))
+        self.location_label.setText(self.tr("Путь для загрузки"))
+        self.location_pushButton.setText(self.tr("Путь ..."))
+        self.save_pushButton.setText(self.tr("Начать"))
+
+    def set_location_path(self):
+        path = QtWidgets.QFileDialog.getExistingDirectory(self)
+        self.new_download_path = path
+        self.location_pushButton.setText(path[:50] + ('...' if len(path) >= 50 else ''))
+        self.location_pushButton.setToolTip(path)
+
+    def change_checkbox_downloading_old_place(self, e):
+        if e:
+            self.new_download_path = cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['ORIGINAL_LOCATION']
+            self.location_pushButton.setEnabled(0)
+        else:
+            self.location_pushButton.setEnabled(1)
+    
+    def save_files(self):
+        if os.path.isdir(self.new_download_path):
+            cm.download_files_network()
+        else:
+            self.error_message.setText(self.tr('Неверно указан путь сохранения файлов'))
+
+
+
+    
+        
+
+
+
+
+class Main(Base):
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("Main")
+        self.resize(336, 293)
+        self.setWindowIcon(QtGui.QIcon('CS.ico'))
+        self.setStyleSheet("""
+            QToolTip {
+                color: white;
+                background-color: black;                    
+            }
+        """)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.icon_lable = QtWidgets.QLabel(parent=self)
+        self.icon_lable.setWordWrap(True)
+        self.icon_lable.setObjectName("icon_lable")
+        self.horizontalLayout.addWidget(self.icon_lable)
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.about_pushButton = Push(self, 50, 50, 5, self.tr('О программе'), self.tr('i'), os.path.join('assets', 'media','about.svg'))
+        
+        
         self.about_pushButton.setObjectName("about_pushButton")
         self.horizontalLayout.addWidget(self.about_pushButton)
-        self.settings_pushButton = QtWidgets.QPushButton(parent=self)
+        self.settings_pushButton = Push(self, 50, 50, 5, self.tr('Настройки'), self.tr('Настройки'), os.path.join('assets', 'media','settings.svg'))
         self.settings_pushButton.setObjectName("settings_pushButton")
         self.horizontalLayout.addWidget(self.settings_pushButton)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem1)
+        # spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        # self.verticalLayout_2.addItem(spacerItem1)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
@@ -260,7 +617,8 @@ class Main(Base):
         self.comboBox = QtWidgets.QComboBox(parent=self)
         self.comboBox.setObjectName("comboBox")
         self.horizontalLayout_2.addWidget(self.comboBox)
-        self.fix_folder_pushButton = QtWidgets.QPushButton(parent=self)
+        self.fix_folder_pushButton = Push(self, 40, 40, 0, self.tr('Добавить хранилище'), self.tr('+'), os.path.join('assets', 'media','add-folder.svg'))
+        self.fix_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px')
         self.fix_folder_pushButton.setObjectName("fix_folder_pushButton")
         self.horizontalLayout_2.addWidget(self.fix_folder_pushButton)
         self.type_pushButton = QtWidgets.QPushButton(parent=self)
@@ -271,17 +629,21 @@ class Main(Base):
         self.verticalLayout.addLayout(self.verticalLayout_4)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
-        self.send_folder_pushButton = QtWidgets.QPushButton(parent=self)
+        self.send_folder_pushButton = Push(self, 40, 40, 0, self.tr('Отправить'), self.tr('Отправить'), os.path.join('assets', 'media','up-folder.svg'))
+        self.send_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px')
         self.send_folder_pushButton.setObjectName("send_folder_pushButton")
         self.gridLayout.addWidget(self.send_folder_pushButton, 0, 0, 1, 1)
-        self.download_folder_pushButton = QtWidgets.QPushButton(parent=self)
+        self.download_folder_pushButton = Push(self, 40, 40, 0, self.tr('Загрузить'), self.tr('Загрузить'), os.path.join('assets', 'media','down-folder.svg'))
+        self.download_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px')
         self.download_folder_pushButton.setObjectName("download_folder_pushButton")
         self.gridLayout.addWidget(self.download_folder_pushButton, 0, 1, 1, 1)
-        self.remove_folder_pushButton = QtWidgets.QPushButton(parent=self)
+        self.remove_folder_pushButton =  Push(self, 40, 40, 0, self.tr('Удалить'), self.tr('Удалить'), os.path.join('assets', 'media','remove-folder.svg'))
+        self.remove_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px;')
         self.remove_folder_pushButton.setObjectName("remove_folder_pushButton")
         self.gridLayout.addWidget(self.remove_folder_pushButton, 1, 0, 1, 2)
         self.verticalLayout.addLayout(self.gridLayout)
-        self.settings_folder_pushButton = QtWidgets.QPushButton(parent=self)
+        self.settings_folder_pushButton = Push(self, 40, 40, 0, self.tr('Параметры хранилища'), self.tr('Параметры хранилища'), os.path.join('assets', 'media','parametrs-folder.svg'))
+        self.settings_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px;')
         self.settings_folder_pushButton.setObjectName("settings_folder_pushButton")
         self.verticalLayout.addWidget(self.settings_folder_pushButton)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
@@ -305,6 +667,7 @@ class Main(Base):
         self.remove_folder_pushButton.clicked.connect(self.remove_folder)
         self.send_folder_pushButton.clicked.connect(self.send_folder)
         self.download_folder_pushButton.clicked.connect(self.download_folder)
+        self.about_pushButton.clicked.connect(self.show_about)
         self.threadpool = QThreadPool()
 
         self.retranslateUi()
@@ -317,26 +680,26 @@ class Main(Base):
     def retranslateUi(self):
         self.setWindowTitle(self.tr("CopySystem"))
         self.icon_lable.setText(self.tr(f"<html><head/><body><p><span style=\" font-size:18pt; font-weight:600;\">CopySystem<sup>{str(VERSION)}</sup> </span></p></body></html>"))
-        self.about_pushButton.setText(self.tr("i"))
-        self.settings_pushButton.setText(self.tr("Настрйоки"))
+        
+        # self.settings_pushButton.setText(self.tr("Настрйоки"))
         self.folder_label.setText(self.tr(""))
         self.send_folder_pushButton.setText(self.tr("Отправить"))
         self.download_folder_pushButton.setText(self.tr("Загрузить"))
         self.remove_folder_pushButton.setText(self.tr("Удалить"))
-        self.fix_folder_pushButton.setText(self.tr("+"))
+        # self.fix_folder_pushButton.setText(self.tr("+"))
         self.settings_folder_pushButton.setText(self.tr("Параметры хранилища"))
         self.label.setText(self.tr("Ход выполнения"))
 
     def active_folder(self):
         if self.comboBox.currentText():
             cm.activate_folder(self.comboBox.currentText())
-            self.main_terminal.setText( self.main_terminal.toPlainText() + f'ACTIVATE {self.comboBox.currentText()}\n')
+            self.main_terminal.setText( self.main_terminal.toPlainText() + f'АКТИВАЦИЯ: {self.comboBox.currentText()}\n')
             self.type_pushButton.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'])
     
     def remove_folder(self):
         cm.remove_link_folder(cm.WORK_DIR)
         cm.save_config()
-        self.main_terminal.setText( self.main_terminal.toPlainText() + f'DELETE {self.comboBox.currentText()}\n')
+        self.main_terminal.setText( self.main_terminal.toPlainText() + f'ОТКРЕПЛЕНИЕ: {self.comboBox.currentText()}\n')
         self.update_list_folders()
         
     def show_parametrs(self):
@@ -347,23 +710,36 @@ class Main(Base):
         self.p = Parametrs(self, is_new=True)
         self.p.show()
 
-    def show_send_file(self, progress_callback):
+    def ssf(self, progress_callback, *args, **kwargs):
+        progress_callback.emit(args[0])
+        #NEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEW
+        # self.main_terminal.verticalScrollBar().setValue(100)
+
+    def show_send_files(self, progress_callback):
+        cm.show_stream_upload_files = lambda *args, **kwargs: self.ssf(progress_callback, *args, **kwargs) 
         cm.send_folder_network()
-        progress_callback.emit(2)
+
 
     def send_folder(self):
         # cm.send_folder_network()
-        self.w = Worker(self.show_send_file)
+        
+        self.w = Worker(self.show_send_files)
 
-        self.w.signals.progress.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'SEND {str(x)}\n'))
-        self.w.signals.result.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'RESULT {str(x)}\n'))
-        self.w.signals.error.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'ERROR {str(x)}\n'))
+        self.w.signals.progress.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'ОТПРАВКА: {str(x)}\n'))
+        self.w.signals.result.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'РЕЗУЛЬТАТ: {str(x)}\n'))
+        self.w.signals.error.connect(lambda x : self.main_terminal.setText( self.main_terminal.toPlainText() + f'ОШИБКА: {str(x)}\n'))
 
         self.threadpool.start(self.w)
         # print('SEND')
 
     def download_folder(self):
-        print('DOWNLOAD')
+        self.paths = Paths_UI()
+        self.paths.show()
+
+    
+    def show_about(self):
+        self.about = About_UI()
+        self.about.show()
         
     
 
