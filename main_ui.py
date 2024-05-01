@@ -269,7 +269,8 @@ TTTTTT  T:::::T  TTTTTT  H:::::H     H:::::H             A:::::::::A           N
                 <hr>
                 <h3>Отдельная благодарность:</h3>
                 <ui>
-                <li>Вдохновителю и тестирвощику - <b>Васильеву Владу Александровичу</b></li>
+                <li>Моей <b>маме</b>,</li>
+                <li>Вдохновителю и тестирвощику - <b>Васильеву Владу Александровичу</b>,</li>
                 <li></li>
                 <li></li>
                 </ui>
@@ -560,7 +561,7 @@ class Paths_UI(QtWidgets.QDialog):
     
     def save_files(self):
         if os.path.isdir(self.new_download_path):
-            cm.download_files_network()
+            cm.download_files_network(new_path=self.new_download_path)
         else:
             self.error_message.setText(self.tr('Неверно указан путь сохранения файлов'))
 
@@ -583,6 +584,8 @@ class Main(Base):
                 color: white;
                 background-color: black;                    
             }
+          
+
         """)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -615,6 +618,8 @@ class Main(Base):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.comboBox = QtWidgets.QComboBox(parent=self)
+        self.comboBox.setMinimumHeight(50)
+        self.comboBox.setStyleSheet('border: none; background-color: rgb(228, 228, 228); padding: 5px;')
         self.comboBox.setObjectName("comboBox")
         self.horizontalLayout_2.addWidget(self.comboBox)
         self.fix_folder_pushButton = Push(self, 40, 40, 0, self.tr('Добавить хранилище'), self.tr('+'), os.path.join('assets', 'media','add-folder.svg'))
@@ -622,6 +627,8 @@ class Main(Base):
         self.fix_folder_pushButton.setObjectName("fix_folder_pushButton")
         self.horizontalLayout_2.addWidget(self.fix_folder_pushButton)
         self.type_pushButton = QtWidgets.QPushButton(parent=self)
+        self.type_pushButton.setMinimumHeight(50)
+        self.type_pushButton.setStyleSheet('border: none; background-color: rgb(228, 228, 228); padding: 5px;')
         self.type_pushButton.setText("ТИП")
         self.type_pushButton.setObjectName("type_pushButton")
         self.horizontalLayout_2.addWidget(self.type_pushButton)

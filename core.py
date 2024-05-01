@@ -114,12 +114,12 @@ class CopyManager:
                 print(res)
 
     def scan_folder_network(self, root_dir, result=None):
-        root_dir = root_dir.replace(os.sep, r'%2F')
+        root_dir = root_dir
         if not result:
             result = {}
-        res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}?path={root_dir}", headers=self.generate_head()).json()
+        res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}?path={root_dir.replace(os.sep, r'%2F')}", headers=self.generate_head()).json()
         f = []
-        print(res)
+        
         for i in res['_embedded']['items']:
             if i['type'] == 'dir':
                 result = self.scan_folder_network(os.path.join(root_dir, i['name']), result=result)
@@ -129,22 +129,22 @@ class CopyManager:
         return result
 
     def download_files_network(self, new_path=None):
-        root_dir = os.path.join(self.HOME_DIR, self.WORK_DIR)
-     
+        root_dir = os.path.join(self.HOME_DIR, self.WORK_DIR) 
         dirs = self.scan_folder_network(root_dir)
+  
+
         if new_path:
             path = new_path
         else:
             path = self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['ORIGINAL_LOCATION']
         
         for i in sorted(dirs, key=lambda x: len(x.split(os.sep))):
-            if not os.path.isdir(path + i.replace(root_dir, '')) and i.replace(root_dir, ''):
-                print(f"CREATE FOLDER {i.replace(root_dir, '')}")
-                os.mkdir(path + i.replace(root_dir, ''))
-# hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh        
+            if not os.path.exists(os.path.join(path + i.replace(root_dir, ''))):
+                os.mkdir(os.path.join(path + i.replace(root_dir, '')))    
+            
         for i in dirs:
             for file in dirs[i]:
-                print("DOWNLOAD", file[0]) # Здесь надо разобраться  os.sep
+                # print("DOWNLOAD", path + os.sep + i.replace(root_dir, '') + os.sep + file[0])
                 with open(path + os.sep + i.replace(root_dir, '') + os.sep + file[0], 'wb') as f: 
                     requests.get(file[1])      
 
