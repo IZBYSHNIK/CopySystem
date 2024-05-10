@@ -14,11 +14,14 @@ from core import CopyManager
 from PySide6.QtCore import QRunnable, Slot, Signal, QThreadPool
 from PySide6 import QtSvgWidgets
 
-import sys, os
+import sys, os, requests, json, platform
 import traceback
 
-VERSION = '0.3.0'
+VERSION = '0.4.0'
 cm = CopyManager()
+
+import webbrowser
+print(webbrowser.open('https://passport.yandex.ru/auth'))
 
 def clearLayout(layout):
     for i in reversed(range(layout.count())): 
@@ -165,11 +168,12 @@ class Base(QtWidgets.QWidget):
         self.resize(336, 293)
 
 
-class About_UI(Base):
+class About_UI(QtWidgets.QDialog):
     def __init__(self):
         super().__init__()
         self.setObjectName("self")
         self.resize(186, 187)
+        self.setModal(True)
         
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -188,6 +192,16 @@ class About_UI(Base):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, -1, -1, 25)
         self.horizontalLayout.setObjectName("horizontalLayout")
+
+        self.update_horizontalLayout = QtWidgets.QHBoxLayout()
+        self.update_horizontalLayout.addWidget(QtWidgets.QLabel(f'Версия {str(VERSION)}'))
+        self.update_horizontalLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        # UpdateManager
+        self.update_pushButton = Push(self, 35, 35, 5, self.tr('О программе'), self.tr('i'), os.path.join('assets', 'media','update_button.svg'))
+        self.update_horizontalLayout.addWidget(self.update_pushButton)
+        
+        self.verticalLayout_2.addLayout(self.update_horizontalLayout)
+
         self.logo_GPL = QtSvgWidgets.QSvgWidget(os.path.join('assets', 'media','GPL.svg'), parent=self)
         self.logo_GPL.setObjectName("logo_GPL")
         self.logo_GPL.setFixedSize(QtCore.QSize(150, 100))
@@ -199,6 +213,7 @@ class About_UI(Base):
         self.verticalLayout_2.addWidget(self.Copyright_lable)
         self.logo_lable.mousePressEvent = self.show_gratitude
         self.logo_GPL.mousePressEvent = self.show_license
+        self.update_pushButton.clicked.connect(self.click_push_botton)
 
         self.retranslateUi()
      
@@ -230,6 +245,11 @@ class About_UI(Base):
             self.l.setText(temp)
             self.l.show()
         del temp
+
+    def click_push_botton(self, e):
+        self.um = UpdateManager()
+        self.um.show()
+
 
     def show_gratitude(self, e):
         self.g = QtWidgets.QTextBrowser()
@@ -566,11 +586,102 @@ class Paths_UI(QtWidgets.QDialog):
             self.error_message.setText(self.tr('Неверно указан путь сохранения файлов'))
 
 
-
     
+class UpdateManager(QtWidgets.QDialog):
+    URL_PROJECT = 'https://api.github.com/repos/IZBYSHNIK/CopySystem/releases/latest'
+
+    def __init__(self, parent=None):
+        super(UpdateManager, self).__init__(parent)
+        self.setObjectName("UpdateManager")
+        self.setStyleSheet('a {font-size:18px; color: black; text-decoration: none;}')
+
+        self.setModal(True)
+        self.vertical_layout = QtWidgets.QVBoxLayout(self)
+
+        self.title = QtWidgets.QLabel()
+        self.title.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.title.setStyleSheet('font-size:18px; text-transform: uppercase;')
+
+        self.message = QtWidgets.QLabel()
+        self.message.setStyleSheet('font-size:14px;')
+
+        self.buttons_layout = QtWidgets.QHBoxLayout()
+        self.show_link = QtWidgets.QLabel()
+        self.show_link.setStyleSheet('font-size:16px')
+        self.show_link.setOpenExternalLinks(True)
+        self.show_link.setFixedHeight(50)
+
+        self.show_link.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        self.buttons_layout.addWidget(self.show_link)
+        self.load_link = QtWidgets.QLabel()
+        self.load_link.setStyleSheet('font-size:16px')
+        self.load_link.setOpenExternalLinks(True)
+        self.load_link.setFixedHeight(50)
+
+        self.load_link.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.buttons_layout.addWidget(self.load_link)
+
+        self.vertical_layout.addWidget(self.title)
+        self.vertical_layout.addWidget(self.message)
+        self.vertical_layout.addLayout(self.buttons_layout)
+
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr('Обновление'))
+
+    def fill_data(self, data):
+        self.title.setText(data['title'])
+        self.message.setText(data['message'])
+        self.show_link.setText(f'<a href="{data["show_url"]}">' + self.tr('Посмотреть') + '</a>')
+        self.load_link.setText(f'<a href="{data["download_url"]}">' + self.tr('Скачать') + '</a>')
+
+    def link_host(self):
+        data = {}
+        try:
+            update_massage = json.loads(requests.api.get(self.URL_PROJECT,
+                                                         params={'User-Agent:': str(platform.node())}).text)
+        except requests.exceptions.ConnectionError as f:
+            return data
+
+        if not update_massage:
+            return {}
+
         
+        version = [int(i) if i.isnumeric() else i for i in
+                update_massage.get('tag_name', '0.0.0').split('.')]
+
+        data = {
+            'version': version,
+            'title': update_massage.get('name', 'Update X'),
+            'message': update_massage.get('body', 'Text'),
+            'show_url': update_massage.get('html_url', ''),
+            'download_url': update_massage.get('assets', ({},))[0].get('browser_download_url', '') if update_massage.get('assets', ({},)) else '',
+        }
+       
 
 
+        return data
+
+    @staticmethod
+    def check_new_version(old, new):
+        # print(old, new)
+        if old < new:
+            return True
+        return False
+
+    def show(self):
+        data = self.link_host()
+
+        if not data:
+            return
+        if not self.check_new_version([int(i) if i.isnumeric() else i for i in VERSION.split('.')], data['version']):
+            return
+
+        self.fill_data(data)
+
+        super().show()
 
 
 class Main(Base):
@@ -626,10 +737,9 @@ class Main(Base):
         self.fix_folder_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px')
         self.fix_folder_pushButton.setObjectName("fix_folder_pushButton")
         self.horizontalLayout_2.addWidget(self.fix_folder_pushButton)
-        self.type_pushButton = QtWidgets.QPushButton(parent=self)
-        self.type_pushButton.setMinimumHeight(50)
-        self.type_pushButton.setStyleSheet('border: none; background-color: rgb(228, 228, 228); padding: 5px;')
-        self.type_pushButton.setText("ТИП")
+        self.type_pushButton = Push(self, 40, 40, 0, self.tr('ТИП'), self.tr('ТИП'), os.path.join('assets', 'media', 'type','folder-2.svg'))
+        self.type_pushButton.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 5%); padding: 5px')
+        # self.type_pushButton.setText("ТИП")
         self.type_pushButton.setObjectName("type_pushButton")
         self.horizontalLayout_2.addWidget(self.type_pushButton)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
@@ -657,9 +767,18 @@ class Main(Base):
         self.verticalLayout.addItem(spacerItem2)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.hl1 = QtWidgets.QHBoxLayout()
+        self.hl1.setObjectName("hl1")
         self.label = QtWidgets.QLabel(parent=self)
         self.label.setObjectName("label")
-        self.verticalLayout_5.addWidget(self.label)
+        self.hl1.addWidget(self.label)
+        self.status_label = QtWidgets.QLabel(parent=self)
+        self.status_label.setAlignment(QtGui.Qt.AlignmentFlag.AlignRight)
+        self.status_label.setText('')
+
+        self.status_label.setObjectName("status_label")
+        self.hl1.addWidget(self.status_label)
+        self.verticalLayout_5.addLayout(self.hl1)
         self.main_terminal = QtWidgets.QTextBrowser(parent=self)
         self.main_terminal.setObjectName("main_terminal")
         self.verticalLayout_5.addWidget(self.main_terminal)
@@ -699,15 +818,28 @@ class Main(Base):
 
     def active_folder(self):
         if self.comboBox.currentText():
+            icon_type = {
+                'NETWORK': 'folder-0.svg', 
+                'BETWEEN': 'folder-1.svg', 
+                'LOCAL': 'folder-2.svg', 
+
+            }
             cm.activate_folder(self.comboBox.currentText())
             self.main_terminal.setText( self.main_terminal.toPlainText() + f'АКТИВАЦИЯ: {self.comboBox.currentText()}\n')
-            self.type_pushButton.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'])
+            
+            # self.type_pushButton.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'])
+            self.type_pushButton.setIcon(QtGui.QIcon(os.path.join('assets', 'media', 'type', icon_type.get(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE']))))
     
     def remove_folder(self):
-        cm.remove_link_folder(cm.WORK_DIR)
-        cm.save_config()
-        self.main_terminal.setText( self.main_terminal.toPlainText() + f'ОТКРЕПЛЕНИЕ: {self.comboBox.currentText()}\n')
-        self.update_list_folders()
+        message = QtWidgets.QMessageBox.question(self, self.tr('Открепление хранилищя'),
+                                                 self.tr(
+                                                     f'Вы точно хоите открепить хранилище {cm.WORK_DIR}?'),
+                                                 QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
+        if message.Yes == message:
+            cm.remove_link_folder(cm.WORK_DIR)
+            cm.save_config()
+            self.main_terminal.setText( self.main_terminal.toPlainText() + f'ОТКРЕПЛЕНИЕ: {self.comboBox.currentText()}\n')
+            self.update_list_folders()
         
     def show_parametrs(self):
         self.p = Parametrs(self)
@@ -719,8 +851,7 @@ class Main(Base):
 
     def ssf(self, progress_callback, *args, **kwargs):
         progress_callback.emit(args[0])
-        #NEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEWNEW
-        # self.main_terminal.verticalScrollBar().setValue(100)
+        
 
     def show_send_files(self, progress_callback):
         cm.show_stream_upload_files = lambda *args, **kwargs: self.ssf(progress_callback, *args, **kwargs) 

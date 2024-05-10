@@ -96,7 +96,8 @@ class CopyManager:
         res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}/upload?path={savefile}&overwrite={replace}", headers=self.generate_head()).json()
         with open(loadfile, 'rb') as f:
             try:
-                requests.put(res['href'], files={'file':f})
+                # requests.put(res['href'], files={'file':f}, stream=True)
+                requests.put(res['href'], data=f, stream=True)
             except KeyError:
                 print(res)
 
@@ -109,7 +110,7 @@ class CopyManager:
         res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}/download?path={savefile}", headers=self.generate_head()).json()
         with open(loadfile, 'wb') as f:
             try:
-                requests.put(res['href'], files={'file':f})
+                requests.put(res['href'], files={'file':f}, stream=True)
             except KeyError:
                 print(res)
 
