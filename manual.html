@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<style type="text/css">
+			body {
+				min-width: 1500px;
+			}
+			* {
+				font-family: sans-serif;
+			}
+			h1 {
+				text-align: center;
+			}
+			.number {
+				display: flex;
+				justify-content: right;
+				font-size: 2rem;
+				color: rgba(0, 0, 0, .1);
+
+/*				border: 1px solid red;*/
+
+			}
+			.img_step{
+				display: flex;
+				justify-content: center;
+			}
+			img {
+				width: 45em;
+				border-radius: 25px;
+			}
+			article {
+				width: 100%;
+			}
+			.step {
+				display: flex;
+				justify-content:space-between;
+				margin: 15px;
+				margin-bottom: 50px;
+				border: 1px solid rgba(0, 0, 0, .05);
+				padding: 15px;
+				box-shadow: 12px 12px 2px 1px rgba(0, 0, 0, .05);
+				border-radius: 15px;
+			}
+			p {
+				font-size: 1.6rem;
+				min-width: 400px;
+			}
+			.verticalLine {
+				border-left: thick solid rgba(0, 0, 0, .05);
+				margin-right: 15px;
+			}
+			.anchor {
+				margin-top: 50px;
+				text-align: center;
+				background-color: rgba(0, 0, 0, .05);
+				padding: 25px;
+			}
+
+		</style>
+	</head>
+	<body>
+		<h1>Инструкция по получению токена от Yandex-диска</h1>
+		<div>
+			<div class='step'>
+				<div class='img_step'><img src=".\manual\Step_0.png"></div>
+				<div class="verticalLine"></div>
+				<article>
+					<div class=number>I</div>
+					<p>Для начала Вам необходимо создать ваше приложение и получить токен.</p>
+					<p>Перейдите по ссылке и заполните форму</p>
+					<p><a href="https://oauth.yandex.ru/client/new">https://oauth.yandex.ru/client/new</a></p>
+				</article>
+	
+			</div>
+			<div class='step'>
+				<div class='img_step'><img src=".\manual\Step_1.jpg"></div>
+				<div class="verticalLine"></div>
+				<article>
+					<div class=number>II</div>
+					<p>В качестве платформы приложения нужно выбрать «Веб-сервисы»</p>
+					<p>И указать следующее перенаправление: <a href=''>https://oauth.yandex.ru/verification_code<a> </p>
+				</article>
+			</div>
+			<div class='step'>
+				<div class='img_step'><img src=".\manual\Step_2.jpg"></div>
+				<div class="verticalLine"></div>
+				<article>
+					<div class=number>III</div>
+					<p>Для полного доступа к Яндекс.Диску нужно прописать в поле слово <b>cloud</b> и добавить все доступные значения.</p>
+				</article>
+			</div>
+			<div class='step'>
+				<div class='img_step'><img src=".\manual\Step_3.png"></div>
+				<div class="verticalLine"></div>
+				<article>
+					<div class=number>IV</div>
+					<p>После успешного создания приложения вас перебросит в личный кабинет, во вкладку «Мои приложения». Здесь вам нужно скопировать «ClientID» и вставить его в ссылку представленную ниже, для получения токена вашего приложения.</p>
+					<p class='anchor'>https://oauth.yandex.ru/authorize?response_type=token&amp;client_id=идентификатор_клиента</p>
+					
+				</article>
+			</div>
+			<div class='step'>
+				<div class='img_step'><img src=".\manual\Step_4.jpg"></div>
+				<div class="verticalLine"></div>
+				<article>
+					<div class=number>V</div>
+					
+					<p>
+						Далее вам нужно перейти по этой ссылке в браузере. К вашему базовому URL будет добавлен GET параметр с указанием токена (access_token), который вам нужно скопировать и вставить в программу в поле "ТОКЕН".
+					</p>
+				</article>
+			</div>
+			
+
+		</div>
+	</body>
+</html>

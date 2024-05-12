@@ -85,6 +85,9 @@ class CopyManager:
     def show_stream_upload_files(self, *args, **kwargs):
         pass
 
+    def show_stream_download_files(self, *args, **kwargs):
+        pass
+
 
     def upload_file_network(self, loadfile, savefile, replace=False):
         """Загрузка файла.
@@ -96,7 +99,6 @@ class CopyManager:
         res = requests.get(f"{self.CONFIG['CONNECT_FOLDERS'][self.WORK_DIR]['PARAMETRS']['URL']}/upload?path={savefile}&overwrite={replace}", headers=self.generate_head()).json()
         with open(loadfile, 'rb') as f:
             try:
-                # requests.put(res['href'], files={'file':f}, stream=True)
                 requests.put(res['href'], data=f, stream=True)
             except KeyError:
                 print(res)
@@ -146,6 +148,7 @@ class CopyManager:
         for i in dirs:
             for file in dirs[i]:
                 # print("DOWNLOAD", path + os.sep + i.replace(root_dir, '') + os.sep + file[0])
+                self.show_stream_download_files(file[0])
                 with open(path + os.sep + i.replace(root_dir, '') + os.sep + file[0], 'wb') as f: 
                     requests.get(file[1])      
 

@@ -20,8 +20,7 @@ import traceback
 VERSION = '0.4.0'
 cm = CopyManager()
 
-import webbrowser
-print(webbrowser.open('https://passport.yandex.ru/auth'))
+
 
 def clearLayout(layout):
     for i in reversed(range(layout.count())): 
@@ -168,12 +167,12 @@ class Base(QtWidgets.QWidget):
         self.resize(336, 293)
 
 
-class About_UI(QtWidgets.QDialog):
+class About_UI(Base):
     def __init__(self):
         super().__init__()
         self.setObjectName("self")
         self.resize(186, 187)
-        self.setModal(True)
+
         
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -399,7 +398,6 @@ class Parametrs(QtWidgets.QDialog):
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.comboBox.currentIndexChanged.connect(self.set_type_folder)
-        self.comboBox.currentIndexChanged.connect(self.set_type_folder)
 
         for i in cm.TYPE_CONNECT:
             self.comboBox.addItem(i)
@@ -410,7 +408,7 @@ class Parametrs(QtWidgets.QDialog):
         self.current_path = ''
 
         self.retranslateUi()
-
+        self.set_type_folder()
         if not is_new:
             self.load_date()
         
@@ -436,34 +434,61 @@ class Parametrs(QtWidgets.QDialog):
             self.parametrs_gridLayout.addWidget(self.URLs, 0, 1, 1, 1)
             self.parametrs_gridLayout.addWidget(QtWidgets.QLabel(self.tr('ТОКЕН')), 1, 0, 1, 1)
             self.parametrs_gridLayout.addWidget(self.token, 1, 1, 1, 1)
+            link = QtWidgets.QCommandLinkButton('Как получить ТОКЕН?')
+            link.clicked.connect(self.show_manual)
+            self.parametrs_gridLayout.addWidget(link, 2, 1, 1, 1)
+        elif self.comboBox.currentText() == 'BETWEEN':
+            self.new_path_button = QtWidgets.QPushButton(self.tr("Путь ..."))
+            self.new_path_button.clicked.connect(self.set_location_path2)
+            self.parametrs_gridLayout.addWidget(QtWidgets.QLabel(self.tr('Второй путь')), 0, 0, 1, 1)
+            self.parametrs_gridLayout.addWidget(self.new_path_button, 0, 1, 1, 1)
+
+    def show_manual(self):
+        import webbrowser
+        webbrowser.open('manual.html')
+
         
     def load_date(self):
         
         self.lineEdit.setText(cm.WORK_DIR)
         self.location_pushButton.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['ORIGINAL_LOCATION'])
         self.comboBox.setCurrentText(cm.WORK_DIR)
-        self.URLs.setCurrentText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['PARAMETRS'].get('URL'))
-        self.token.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['PARAMETRS'].get('TOKEN'))
+        if cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'] == 'NETWORK':
+            self.URLs.setCurrentText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['PARAMETRS'].get('URL'))
+            self.token.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['PARAMETRS'].get('TOKEN'))
+        elif cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'] == 'BETWEEN':
+            self.new_path_button.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['PARAMETRS'].get('NEW_LOCATION', 'Путь ...'))
         
 
       
     def save_folder(self):
-        if self.comboBox.currentText() == 'NETWORK':
-            try:
-                if not os.path.isdir(self.location_pushButton.text()):
-                    raise ValueError()
+        if not self.current_path:
+            self.current_path = cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['ORIGINAL_LOCATION']
 
-                cm.fix_folder(self.lineEdit.text(), self.current_path, self.comboBox.currentText(), 0, {
+        
+        try:
+            if not os.path.isdir(self.current_path):
+                raise ValueError('Указанный путь не существует')
+            if self.comboBox.currentText() == 'NETWORK':
+                cm.fix_folder(self.lineEdit.text(), self.current_path, 'NETWORK', 0, {
                     'URL': self.URLs.currentText(),
                     'TOKEN': self.token.toPlainText(),
                 })
-            except ValueError as f:
-                self.parent.main_terminal.setText( self.parent.main_terminal.toPlainText() + f'ERROR {str(f)}\n')
-                self.error_message.setText(self.tr('ОШИБКА введено недопустимое значение в поле'))
-            else:
-                cm.save_config()
-                self.parent.update_list_folders()
-                self.deleteLater()
+            elif self.comboBox.currentText() == 'BETWEEN':
+                if not os.path.isdir(self.new_path):
+                    raise ValueError('Второй указанный путь не существует')
+                cm.fix_folder(self.lineEdit.text(), self.current_path, 'BETWEEN', 0, {
+                    'NEW_LOCATION': self.new_path,
+                })
+        except ValueError as f:
+            self.parent.main_terminal.setText( self.parent.main_terminal.toPlainText() + f'ERROR {str(f)}\n')
+            self.error_message.setText(self.tr('ОШИБКА введено недопустимое значение в поле'))
+        else:
+            cm.save_config()
+            self.parent.update_list_folders()
+            self.deleteLater()
+        
+
 
     def set_location_path(self):
         path = QtWidgets.QFileDialog.getExistingDirectory(self)
@@ -471,12 +496,19 @@ class Parametrs(QtWidgets.QDialog):
             self.current_path = path
             self.location_pushButton.setText(path[:50] + ('...' if len(path) >= 50 else ''))
             self.location_pushButton.setToolTip(path)
+    
+    def set_location_path2(self):
+        path = QtWidgets.QFileDialog.getExistingDirectory(self)
+        if path:
+            self.new_path = path
+            self.new_path_button.setText(path[:50] + ('...' if len(path) >= 50 else ''))
+            self.new_path_button.setToolTip(path)
         
 
 class Paths_UI(QtWidgets.QDialog):
-    def __init__(self,):
+    def __init__(self, parent):
         super().__init__()
-     
+        self.parent = parent
         self.setWindowIcon(QtGui.QIcon('CS.ico'))
         self.resize(366, 298)
         self.setModal(True)
@@ -550,9 +582,12 @@ class Paths_UI(QtWidgets.QDialog):
         self.new_download_path = ''
 
 
-        self.save_pushButton.clicked.connect(self.save_files)
+        self.save_pushButton.clicked.connect(self.download_folder)
         self.location_pushButton.clicked.connect(self.set_location_path)
         self.is_downloading_old_place.stateChanged.connect(self.change_checkbox_downloading_old_place)
+
+        self.threadpool = QThreadPool()
+
 
         self.retranslateUi()
 
@@ -579,11 +614,31 @@ class Paths_UI(QtWidgets.QDialog):
         else:
             self.location_pushButton.setEnabled(1)
     
-    def save_files(self):
+  
+        
+    def sdf(self, progress_callback, *args, **kwargs):
+        progress_callback.emit(args[0])
+        
+
+    def show_download_files(self, progress_callback):
+        cm.show_stream_download_files = lambda *args, **kwargs: self.sdf(progress_callback, *args, **kwargs) 
         if os.path.isdir(self.new_download_path):
             cm.download_files_network(new_path=self.new_download_path)
         else:
             self.error_message.setText(self.tr('Неверно указан путь сохранения файлов'))
+
+
+
+    def download_folder(self):
+        # cm.send_folder_network()
+        
+        self.w = Worker(self.show_download_files)
+
+        self.w.signals.progress.connect(lambda x : self.parent.main_terminal.setText( self.parent.main_terminal.toPlainText() + f'ЗАГРУЗКА: {str(x)}\n'))
+        self.w.signals.result.connect(lambda x : self.parent.main_terminal.setText( self.parent.main_terminal.toPlainText() + f'РЕЗУЛЬТАТ: {str(x)}\n'))
+        self.w.signals.error.connect(lambda x : self.parent.main_terminal.setText( self.parent.main_terminal.toPlainText() + f'ОШИБКА: {str(x)}\n'))
+
+        self.threadpool.start(self.w)
 
 
     
@@ -827,7 +882,7 @@ class Main(Base):
             cm.activate_folder(self.comboBox.currentText())
             self.main_terminal.setText( self.main_terminal.toPlainText() + f'АКТИВАЦИЯ: {self.comboBox.currentText()}\n')
             
-            # self.type_pushButton.setText(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE'])
+            
             self.type_pushButton.setIcon(QtGui.QIcon(os.path.join('assets', 'media', 'type', icon_type.get(cm.CONFIG['CONNECT_FOLDERS'][cm.WORK_DIR]['TYPE']))))
     
     def remove_folder(self):
@@ -871,7 +926,7 @@ class Main(Base):
         # print('SEND')
 
     def download_folder(self):
-        self.paths = Paths_UI()
+        self.paths = Paths_UI(self)
         self.paths.show()
 
     
